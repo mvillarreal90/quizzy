@@ -1,40 +1,31 @@
-import { decode } from "html-entities";
 import { useState } from "react";
 import clsx from "clsx";
 
 export default function Question(props) {
-  const [selectedAnswer, setSelectedAnswer] = useState("");
-
-  const [answers] = useState(() =>
-    shuffleArray([
-      ...props.questionObj.incorrect_answers,
-      props.questionObj.correct_answer,
-    ]).map(decode),
-  );
-
-  function shuffleArray(answersArray) {
-    const shuffle = [...answersArray];
-
-    for (let i = shuffle.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
-    }
-
-    return shuffle;
-  }
+  const [selected, setSelected] = useState("");
 
   function selectAnswer(answer) {
-    setSelectedAnswer(answer);
+    setSelected(answer);
+    props.onSelectAnswer(answer);
   }
 
-  const answersElements = answers.map((answer) => {
-    const className = clsx("answer", answer === selectedAnswer && "selected");
+  const answersElements = props.answers.map((answer, index) => {
+    const className = clsx({
+      answer: true,
+      selected: !props.checkAnswers && answer === selected,
+      wrong:
+        props.checkAnswers &&
+        answer === selected &&
+        answer !== props.correct_answer,
+      correct: props.checkAnswers && answer === props.correct_answer,
+    });
 
     return (
       <button
         className={className}
-        key={answer}
+        key={answer + index}
         onClick={() => selectAnswer(answer)}
+        disabled={props.checkAnswers}
       >
         {answer}
       </button>
@@ -43,7 +34,7 @@ export default function Question(props) {
 
   return (
     <section className="question">
-      <p>{decode(props.questionObj.question)}</p>
+      <p>{props.question}</p>
       <section className="answers">{answersElements}</section>
     </section>
   );
